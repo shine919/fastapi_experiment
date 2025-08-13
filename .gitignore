@@ -1,0 +1,91 @@
+*.env
+.env
+*.idea
+/venv
+certs/
+*.xml
+*.iml
+# Лог-файлы
+*.log
+
+# Временные файлы
+*.tmp
+
+# Файлы редактора Vim
+*.swp
+
+# Файлы системы macOS
+.DS_Store
+
+# Файлы системы Windows
+Thumbs.db
+
+# Скомпилированные файлы Python
+*.pyc
+*.pyo
+*.pyd
+
+# Информация о пакетах Python
+*.egg-info/
+
+# Директория для скомпилированных Python-файлов
+__pycache__/
+
+# Java-архивы
+*.jar
+
+# Веб-приложения Java
+*.war
+
+# Приложения Java EE
+*.ear
+
+# Файлы LaTeX
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.out
+*.toc
+*.pdf
+
+# Архивы
+*.gz
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+
+# Резервные копии
+*.bak
+*.orig
+*.rej
+
+# Файлы блокировки
+*.lock
+
+# Файлы идентификаторов процессов
+*.pid
+
+# IntelliJ IDEA
+.idea/
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+bin/
+tmp/
+*.swo
+*.swn
+```
+/.venv/

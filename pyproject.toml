@@ -1,0 +1,53 @@
+#pyproject.toml
+
+[project]
+name = "fastapi-1"
+version = "0.1.0"
+description = ""
+authors = ["lofi"]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "uvicorn (>=0.34.3,<0.35.0)",
+    "fastapi[standard] (>=0.115.12,<0.116.0)",
+    "pydantic (>=2.11.5,<3.0.0)",
+    "environs (>=14.2.0,<15.0.0)",
+    "itsdangerous (>=2.2.0,<3.0.0)"
+]
+
+[tool.poetry]
+packages = [{ include = "fastapi_1", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.13"
+black = "^24.4.2"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = ["venv", "alembic", "docker", ".git", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E203", "E266", "E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+extend-exclude = '''
+(venv|
+alembic|
+docker|
+.git|
+__pycache__)
+'''
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start = "start:main"
