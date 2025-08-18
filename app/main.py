@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse
 from logger import logger
 from router import router
 from security import create_tokens, ALGORITHM
-
+import requests as req
 
 logging.basicConfig(level=logging.INFO)
 security = HTTPBasic()
@@ -185,8 +185,10 @@ async def refresh(refresh_token  : str):
     raise HTTPException(status_code=401, detail="Incorrect token")
 
 
-
-
+async def get_rekt():
+    f = req.get('https://httpbin.org/get')
+async def fetch_data():
+    return await get_rekt()
 
 
 
