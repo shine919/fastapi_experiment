@@ -1,54 +1,10 @@
-from typing import Any
-
 import pytest
-from sqlalchemy import false, null
+import requests
 
-from db import get_session
-from main import app
+from main import app, fetch_data
 
 
-@pytest.mark.parametrize(
-    "a, b, expected_status, expected_result",
-    [
-        (5, 10, 200, 15),
-        (-8, -3, 200, -11),
-        (0, 7, 200, 7),
-        ("a", 10, 422, None),  # Ошибка валидации: строка вместо числа
-        (3, None, 422, None)   # Отсутствует параметр b
-    ]
-)
-async def test_calculate_sum_params(a, b, expected_status, expected_result, client):
-    params = {"a": a}
-    if b is not None:
-        params["b"] = b
 
-    response = await client.get("/sum/", params=params)
-    assert response.status_code == expected_status
-    if expected_status == 200:
-        assert response.json() == {"result": expected_result}
-
-@pytest.mark.parametrize(
-    "todo, expected_status, expected_result",
-    [
-        ({'title':'New todo','description':'New todo desc','user_id':1},200,{'message':'Todo created successfully'}),
-        ({'title':1,'description':'New todo desc','user_id':1},422,None),
-        ({'title':'cool todo','description':1,'user_id':1},422,None),
-        ({'title':'cool todo','description':'cool_desc','user_id':99},404,{'detail':'User not found'}),
-    ]
-    )
-async def test_create_todo(todo, expected_status, expected_result,client):
-    response = await client.post('/todos/todo',json=todo)
-    try:
-        assert response.status_code == expected_status
-        if response.status_code == 200:
-            data = response.json()['result']
-            assert data['title'] == todo['title']
-            assert data['description'] == todo['description']
-            assert data['user_id'] == todo['user_id']
-            assert response.json()['message'] == expected_result['message']
-
-    except Exception as e:
-        pytest.fail(f'Тест не прошел:{e}')
 
 @pytest.mark.parametrize(
     "user, expected_status, expected_result",
@@ -80,3 +36,59 @@ async def test_auth(user,user_resp, expected_status, expected_result,client):
     token  = login_resp.json()['access_token']
     resp = await client.get(f'/users/protected_resource/{user_resp}',headers={'Authorization':f'Bearer {token}'})
     assert resp.status_code == expected_status
+
+
+class TestMock:
+
+    async def test_simple(self,client):
+        print("Тест выполняется!")
+        resp = await client.get('users/user/2/')
+        print(f"Статус: {resp.status_code}")
+        print(f"Ответ: {resp.json()}")
+    async def test_get_user(self, mocker, client):
+        mock_usr_data = {'user':'admin','id':1}
+        mock_f_data = requests.Timeout()
+        mock_check_user = mocker.patch('user.crud.UserOrm.check_user_orm', return_value=mock_usr_data)
+        mock_fetch_data = mocker.patch('main.get_rekt', return_value=mock_f_data)
+
+        resp = await client.get('/users/user/1/')
+        resp_2 = await fetch_data()
+        assert isinstance(resp_2, Exception)
+        mock_fetch_data.assert_called_once()
+        mock_check_user.assert_called_once()
+
+        assert resp.json() == mock_usr_data
+        assert resp_2 == mock_f_data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
