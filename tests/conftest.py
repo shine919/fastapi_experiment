@@ -4,11 +4,11 @@ from fastapi_limiter import FastAPILimiter
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import  NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from app.main import app  # Предполагается, что объект app объявлен в app/main.py
+from app.main import app
 import pytest
 from core.config import settings
 from db import get_session, session_factory
-from models import Base, User as UserModel
+from models import Base, User as UserModel, Todo as TodoModel
 from models.user import UserRoleEnum
 from security import crypt_context
 import redis.asyncio as redis
@@ -31,29 +31,51 @@ async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
 app.dependency_overrides[get_session] = override_get_async_session
 
 
-@pytest.fixture(scope="session",autouse=True)
+
+async def add_metadata(session):
+    user = UserModel(
+        username='testuser',
+        email='test@example.com',
+        password=crypt_context.hash('testpass')
+    )
+    user2 = UserModel(
+        username='admin',
+        email='test@example.com',
+        password=crypt_context.hash('admin'),
+        role=UserRoleEnum.admin,
+    )
+    todo1 = TodoModel(
+        title='test todo',
+        description='test todo description',
+        completed=False,
+        user_id=1
+    )
+    todo2 = TodoModel(
+        title='test two',
+        description='test two  todo description',
+        completed=False,
+        user_id=2
+    )
+    session.add(user)
+    session.add(user2)
+    await session.commit()
+    await session.refresh(user)
+    await session.refresh(user2)
+    session.add(todo1)
+    session.add(todo2)
+
+
+
+    await session.commit()
+    await session.refresh(user)
+    await session.refresh(user2)
+
+@pytest.fixture(scope="class",autouse=True)
 async def test_lifespan():
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     async with test_factory() as session:
-        user = UserModel(
-            username='testuser',
-            email='test@example.com',
-            password=crypt_context.hash('testpass')
-        )
-        user2 = UserModel(
-            username='admin',
-            email='test@example.com',
-            password=crypt_context.hash('admin'),
-            role=UserRoleEnum.admin,
-
-        )
-        session.add(user)
-        session.add(user2)
-
-        await session.commit()
-        await session.refresh(user)
-        await session.refresh(user2)
+        await add_metadata(session)
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -68,4 +90,6 @@ async def client():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
         await FastAPILimiter.init(con)
         yield ac
+
+
 
