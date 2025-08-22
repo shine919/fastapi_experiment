@@ -48,12 +48,19 @@ class UserOrm:
 
     @staticmethod
     async def get_users_orm(session: AsyncSession):
-        stmt = select(UserModel)
-        query = await session.execute(stmt)
-        result = query.scalars().all()
-        dicts = [UserCheck.model_validate(r) for r in result]
-        lists = UsersFromDBList(users=dicts)
-        return lists
+        try:
+            stmt = select(UserModel)
+            query = await session.execute(stmt)
+            result = query.scalars().all()
+            dicts = [UserCheck.model_validate(r) for r in result]
+            if dicts:
+                lists = UsersFromDBList(users=dicts)
+                return lists
+            raise HTTPException(status_code=404, detail="Users not found")
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail='Server error')
 
     @staticmethod
     async def put_user_orm(user:UserPut, session:AsyncSession):
