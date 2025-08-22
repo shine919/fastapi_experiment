@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy import select, text, and_, insert, delete, update
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import User as UserModel
@@ -63,11 +64,21 @@ class UserOrm:
             raise HTTPException(status_code=500, detail='Server error')
 
     @staticmethod
-    async def put_user_orm(user:UserPut, session:AsyncSession):
-        hashed_password = crypt_context.hash(user.password)
-        stmt = update(UserModel).where(UserModel.id == user.id).values(username=user.username,email=user.email,password=hashed_password).returning(UserModel.username)
-        query = await session.execute(stmt)
-        return query.scalars().one()
+    async def put_user_orm(user_id: int,user:UserPut, session:AsyncSession):
+        try:
+            hashed_password = crypt_context.hash(user.password)
+            stmt = update(UserModel).where(UserModel.id == user_id).values(username=user.username,email=user.email,password=hashed_password).returning(UserModel.username)
+            query = await session.execute(stmt)
+            await session.commit()
+            result = query.scalars().one()
+            if not result:
+                raise HTTPException(status_code=404, detail="User not found")
+            return result
+        except (HTTPException,NoResultFound) as e:
+            raise HTTPException(status_code=404, detail="User not found")
+        except Exception as e:
+            print(type(e))
+            raise HTTPException(status_code=500, detail=f'Error {e}')
 
     @staticmethod
     async def patch_user_orm(user:UserPatch,session:AsyncSession):
