@@ -81,18 +81,26 @@ class UserOrm:
             raise HTTPException(status_code=500, detail=f'Error {e}')
 
     @staticmethod
-    async def patch_user_orm(user:UserPatch,session:AsyncSession):
-        values = {}
-        if user.username:
-            values['username'] = user.username
-        if user.password:
-            values['password'] =  crypt_context.hash(user.password)
-        if user.email:
-            values['email'] = user.email
-        stmt = update(UserModel).where(UserModel.id==user.id).values(**values).returning(UserModel.username)
-        query = await session.execute(stmt)
-        await session.commit()
-        return query.scalars().one()
+    async def patch_user_orm(user_id:int,user:UserPatch,session:AsyncSession):
+        try:
+            await UserOrm.check_user_orm(session=session, user_id=user_id)
+            values = {}
+            if user.username:
+                values['username'] = user.username
+            if user.password:
+                values['password'] =  crypt_context.hash(user.password)
+            if user.email:
+                values['email'] = user.email
+            stmt = update(UserModel).where(UserModel.id==user_id).values(**values).returning(UserModel.username)
+            query = await session.execute(stmt)
+            await session.commit()
+            return query.scalars().one()
+
+        except HTTPException as e:
+            raise HTTPException(status_code=404, detail="User not found")
+        except Exception as e:
+            print(type(e))
+            raise HTTPException(status_code=500, detail=f'Error {e}')
 
 
 
