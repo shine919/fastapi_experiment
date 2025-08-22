@@ -33,7 +33,7 @@ async def get_todo(id:int,session:AsyncSession = Depends(get_session)):
     return result
 
 @router.get('/analytics/')
-async def get_analytics(timezone: str =  Query('Europe/Samara'),session:AsyncSession = Depends(get_session)):
+async def get_analytics(timezone: str = Query('Europe/Samara'),session:AsyncSession = Depends(get_session)):
     res = await get_analysis_from_todos(timezone,session)
     return res
 
@@ -45,9 +45,9 @@ async def update_todo(id:int,todo:TodoUpdate,session:AsyncSession=Depends(get_se
 
 @router.patch('/todos/')
 async def update_todos(ids:List[int] | int = Query(),completed:bool = Query(True),session:AsyncSession=Depends(get_session)):
-    rq = await TodoOrm.get_todo_by_id_orm(ids=ids,session=session)
+    # rq = await TodoOrm.get_todo_by_id_orm(ids=ids,session=session)
     res = await TodoOrm.update_todos_with_params_orm(ids=ids,completed=completed,session=session)
-    return res
+    return {'message':'Todos successfully updated'}
 
 
 @router.delete('/todo/{id}')
