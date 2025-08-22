@@ -31,7 +31,7 @@ quote-style = "double"
 
 [tool.black]
 line-length = 120
-target-version = ["py311"]
+target-version = ["py313"]
 extend-exclude = '''
 (venv|
 alembic|
