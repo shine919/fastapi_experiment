@@ -1,16 +1,11 @@
-import secrets
-from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Body, Form
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi_limiter.depends import RateLimiter
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.responses import Response
 from db import get_session, resources
+from fastapi import APIRouter, Body, Depends, Form
+from fastapi_limiter.depends import RateLimiter
 from rbac import PermissionChecker
+from sqlalchemy.ext.asyncio import AsyncSession
 from user.auth import login_user_auth
 from user.crud import UserOrm
-from user.schema import UserRegister, UserLogin, UserPut, UserPatch, UserCheck
+from user.schema import UserCheck, UserLogin, UserPatch, UserPut, UserRegister
 from utils import AccessToDataChecker, get_current_user
 
 router = APIRouter(tags=["User"], prefix="/users")
@@ -44,7 +39,7 @@ async def get_user_by_id(user_id: int, session: AsyncSession = Depends(get_sessi
 
 @router.put("/user/{user_id}")
 async def put_update_user(user_id: int, user: UserPut, session: AsyncSession = Depends(get_session)):
-    result = await UserOrm.put_user_orm(user_id, user, session)
+    await UserOrm.put_user_orm(user_id, user, session)
 
     return {f"The user with id {user.id} was updated successfully!"}
 

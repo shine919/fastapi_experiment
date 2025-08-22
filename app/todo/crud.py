@@ -1,10 +1,11 @@
 from typing import Any, Dict, List
+
 from fastapi import HTTPException
-from sqlalchemy import text, select, case, func, update, null, delete, asc, desc, and_, insert
+from models import Todo as TodoModel
+from sqlalchemy import and_, asc, delete, desc, func, insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from models import Todo as TodoModel, User as UserModel
-from todo.schema import TodosParams, TodosResponse, TodoResponse, TodoUpdate, Todo
+from todo.schema import Todo, TodoResponse, TodosParams, TodosResponse, TodoUpdate
 from user.crud import UserOrm
 
 
@@ -53,12 +54,12 @@ class TodoOrm:
                 .where(TodoModel.id.in_(ids))
                 .values(completed=completed, completed_at=completed_at_value)
             )
-            query = await session.execute(stmt)
+            await session.execute(stmt)
             await session.commit()
 
         except HTTPException as e:
             raise HTTPException(status_code=e.status_code, detail=e.detail)
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=500, detail="Failed to update todos")
 
     @staticmethod
@@ -70,24 +71,24 @@ class TodoOrm:
                 .where(TodoModel.id == id)
                 .values(title=todo.title, description=todo.description, completed=todo.completed, user_id=todo.user_id)
             )
-            query = await session.execute(stmt)
+            await session.execute(stmt)
             await session.commit()
 
         except IntegrityError as e:
             if "todos_user_id_fkey" in str(e).lower():
                 raise HTTPException(status_code=400, detail="Invalid user")
-            raise HTTPException(status_code=500, detail=f"Failed to update todo")
+            raise HTTPException(status_code=500, detail="Failed to update todo")
         except HTTPException as e:
             raise HTTPException(status_code=e.status_code, detail=e.detail)
-        except Exception as e:
+        except Exception:
             await session.rollback()
             raise HTTPException(status_code=500, detail="Internal server error while updating todo")
 
     @staticmethod
     async def delete_todo_orm(session: AsyncSession, id: int):
-        check_todo = await TodoOrm.get_todo_by_id_orm(id=id, session=session)
+        await TodoOrm.get_todo_by_id_orm(id=id, session=session)
         stmt = delete(TodoModel).where(TodoModel.id == id)
-        query = await session.execute(stmt)
+        await session.execute(stmt)
         await session.commit()
         return
 
@@ -137,7 +138,7 @@ class TodoRaw:
         row = result.first()
         if row:
             columns = result.keys()
-            res = dict(zip(columns, row))
+            res = dict(zip(columns, row, strict=False))
             return res
         else:
             raise HTTPException(status_code=500, detail="Failed to create todo")
@@ -155,7 +156,7 @@ class TodoRaw:
         res = await session.execute(stmt, {"id": id})
         result = res.first()
         if result:
-            dict_result = dict(zip(res.keys(), result))
+            dict_result = dict(zip(res.keys(), result, strict=False))
             return dict_result
         raise HTTPException(status_code=404, detail="Todo not found")
 
@@ -166,7 +167,7 @@ class TodoRaw:
         stmt = text(
             "UPDATE todos SET title = :title , description = :description , completed = :completed,user_id = :user_id WHERE id = :id"
         )
-        res = await session.execute(
+        await session.execute(
             stmt,
             {
                 "title": todo.title,
@@ -185,15 +186,15 @@ class TodoRaw:
             "UPDATE todos SET completed =:completed ,completed_at = CASE WHEN completed THEN now() ELSE NULL END WHERE id = ANY(:ids)"
         )
 
-        res = await session.execute(stmt, {"ids": ids, "completed": completed})
+        await session.execute(stmt, {"ids": ids, "completed": completed})
         await session.commit()
         return {"message": "Todos updated successfully!"}
 
     @staticmethod
     async def delete_todo_raw(session: AsyncSession, id: int):
-        check_todo = await TodoRaw.get_todo_by_id_raw(id=id, session=session)
+        await TodoRaw.get_todo_by_id_raw(id=id, session=session)
         stmt = text("DELETE FROM todos WHERE id = :id")
-        res = await session.execute(stmt, {"id": id})
+        await session.execute(stmt, {"id": id})
         await session.commit()
         return
 

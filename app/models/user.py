@@ -1,10 +1,7 @@
 from enum import Enum
-from typing import List, TYPE_CHECKING
 
-from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 
 from .base import Base
 

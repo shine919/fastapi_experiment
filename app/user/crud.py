@@ -1,11 +1,10 @@
 from fastapi import HTTPException
-from sqlalchemy import select, text, and_, insert, delete, update
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from models import User as UserModel
 from security import crypt_context
-from user.schema import UserRegister, UserCheck, UsersFromDBList, UserPut, UserPatch
+from sqlalchemy import and_, delete, insert, select, text, update
+from sqlalchemy.exc import NoResultFound
+from sqlalchemy.ext.asyncio import AsyncSession
+from user.schema import UserCheck, UserPatch, UserPut, UserRegister, UsersFromDBList
 
 
 async def handle_user_result(result, register: bool):
@@ -38,7 +37,7 @@ class UserOrm:
         await UserOrm.check_user_orm(username=user.username, session=session, register=True)
         hashed_password = crypt_context.hash(user.password)
         stmt = insert(UserModel).values(username=user.username, password=hashed_password, email=user.email)
-        query = await session.execute(stmt)
+        await session.execute(stmt)
         await session.commit()
         return
 
@@ -46,7 +45,7 @@ class UserOrm:
     async def delete_user_orm(user_id: int, session: AsyncSession):
         await UserOrm.check_user_orm(session=session, user_id=user_id)
         stmt = delete(UserModel).where(UserModel.id == user_id)
-        res = await session.execute(stmt)
+        await session.execute(stmt)
         await session.commit()
         return {"message": "User deleted successfully!"}
 
@@ -64,7 +63,7 @@ class UserOrm:
         except HTTPException as e:
             raise e
         except Exception as e:
-            raise HTTPException(status_code=500, detail="Server error")
+            raise HTTPException(status_code=500, detail="Server error") from e
 
     @staticmethod
     async def put_user_orm(user_id: int, user: UserPut, session: AsyncSession):
@@ -83,10 +82,9 @@ class UserOrm:
                 raise HTTPException(status_code=404, detail="User not found")
             return result
         except (HTTPException, NoResultFound) as e:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="User not found") from e
         except Exception as e:
-            print(type(e))
-            raise HTTPException(status_code=500, detail=f"Error {e}")
+            raise HTTPException(status_code=500, detail=f"Error {e}") from e
 
     @staticmethod
     async def patch_user_orm(user_id: int, user: UserPatch, session: AsyncSession):
@@ -105,10 +103,9 @@ class UserOrm:
             return query.scalars().one()
 
         except HTTPException as e:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise e
         except Exception as e:
-            print(type(e))
-            raise HTTPException(status_code=500, detail=f"Error {e}")
+            raise HTTPException(status_code=500, detail=f"Error {e}") from e
 
 
 class UserRaw:
@@ -135,6 +132,6 @@ class UserRaw:
     async def delete_user_raw(user_id: int, session: AsyncSession):
         await UserRaw.check_user_raw(session=session, user_id=user_id)
         stmt = text("DELETE FROM users WHERE id = :user_id")
-        res = await session.execute(stmt, {"user_id": user_id})
+        await session.execute(stmt, {"user_id": user_id})
         await session.commit()
         return {"message": "User deleted successfully!"}

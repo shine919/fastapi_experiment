@@ -2,7 +2,6 @@ import pytz
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from todo.schema import AnalyticTodoResponse
 
 
@@ -18,14 +17,16 @@ async def check_timezone(timezone: str):
 
 async def get_analysis_from_todos(timezone: str, session: AsyncSession):
     await check_timezone(timezone)
-    total_stats_query = text("""SELECT COUNT(*)                                      as total,
+    total_stats_query = text(
+        """SELECT COUNT(*)                                      as total,
                                        COUNT(CASE WHEN completed = true THEN 1 END)  AS completed_count,
                                        COUNT(CASE WHEN completed = false THEN 1 END) AS not_completed_count,
                                        AVG(CASE
                                                WHEN completed_at is not null
                                                    THEN EXTRACT(EPOCH FROM (created_at - completed_at)) / 3600
                                                else 0 END)::float                    AS avg_completed_time
-                                FROM todo""")
+                                FROM todo"""
+    )
 
     weekday_stats_query = text(
         """SELECT TO_CHAR(created_at AT TIME ZONE 'UTC' AT TIME ZONE :timezone, 'Day') as weekday_distribution,

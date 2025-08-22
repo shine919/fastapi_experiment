@@ -1,10 +1,9 @@
-from datetime import datetime, date
-from decimal import Decimal
+from datetime import datetime
 from enum import Enum
-from typing import List, Union, Literal, Dict
+from typing import Dict, List
 
-from fastapi import Query, HTTPException
-from pydantic import BaseModel, field_validator, ConfigDict
+from fastapi import HTTPException, Query
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class SortParams(str, Enum):
@@ -84,8 +83,8 @@ class TodosParams(BaseModel):
         try:
             checked_value = datetime.fromisoformat(value)
             return checked_value
-        except ValueError:
-            raise HTTPException(status_code=403, detail="Неверный формат даты")
+        except ValueError as e:
+            raise HTTPException(status_code=403, detail="Неверный формат даты") from e
 
     @field_validator("created_before")
     def validate_created_before(cls, value):

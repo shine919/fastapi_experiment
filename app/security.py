@@ -1,11 +1,12 @@
-from typing import Dict
-import jwt
 import datetime
+from typing import Dict
+
+import bcrypt
+import jwt
+from core.config import mini_db, settings
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
-import bcrypt
-from core.config import settings, mini_db
 
 bcrypt.__about__ = bcrypt
 

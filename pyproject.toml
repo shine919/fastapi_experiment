@@ -15,34 +15,23 @@ dependencies = [
     "itsdangerous (>=2.2.0,<3.0.0)"
 ]
 
-
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = ["tests"]
+pythonpath = [".", "app"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+asyncio_mode = "auto"
+python_functions = ["test_*"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py313"
 exclude = ["venv", "alembic", "docker", ".git", "__pycache__"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
-ignore = ["E203", "E266", "E501"]
+ignore = ["E203", "E266", "E501",'B008','B904']
 
 [tool.ruff.format]
 quote-style = "double"
-
-[tool.black]
-line-length = 120
-target-version = ["py313"]
-extend-exclude = '''
-(venv|
-alembic|
-docker|
-.git|
-__pycache__)
-'''
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-start = "start:main"

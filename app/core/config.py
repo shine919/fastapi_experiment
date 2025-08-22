@@ -1,7 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
-from pydantic import BaseModel, Field
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent

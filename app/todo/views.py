@@ -1,18 +1,12 @@
 from typing import List
-from zoneinfo import ZoneInfo
-
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.encoders import jsonable_encoder
-from fastapi.params import Query
-from pydantic import BaseModel
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import get_session
+from fastapi import APIRouter, Depends
+from fastapi.params import Query
+from sqlalchemy.ext.asyncio import AsyncSession
 from todo.analytics import get_analysis_from_todos
 from todo.crud import TodoOrm
-from todo.schema import TodoUpdate, Todo, TodosParams
-from user.crud import UserOrm
+from todo.schema import Todo, TodosParams, TodoUpdate
 
 router = APIRouter(tags=["Todo"], prefix="/todos")
 
@@ -52,7 +46,7 @@ async def update_todos(
     ids: List[int] | int = Query(), completed: bool = Query(True), session: AsyncSession = Depends(get_session)
 ):
     # rq = await TodoOrm.get_todo_by_id_orm(ids=ids,session=session)
-    res = await TodoOrm.update_todos_with_params_orm(ids=ids, completed=completed, session=session)
+    await TodoOrm.update_todos_with_params_orm(ids=ids, completed=completed, session=session)
     return {"message": "Todos successfully updated"}
 
 

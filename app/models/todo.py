@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Text, Integer, ForeignKey, false, TIMESTAMP, func
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, Text, false, func
+from sqlalchemy.orm import Mapped, mapped_column
 
 if TYPE_CHECKING:
-    from . import User
+    pass
 from . import Base
 
 

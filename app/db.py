@@ -1,11 +1,8 @@
 from typing import Any, AsyncGenerator
-from motor.motor_asyncio import AsyncIOMotorClient
-from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
-
 
 from core.config import settings
-
+from motor.motor_asyncio import AsyncIOMotorClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 async_engine = create_async_engine(
     url=settings.db.url,

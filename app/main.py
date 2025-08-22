@@ -1,28 +1,24 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any
+from datetime import datetime
 
 import jwt
+import redis.asyncio as redis
+import requests as req
+from core.config import mini_db, settings
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi_babel import Babel, BabelConfigs, BabelMiddleware, _
-from pydantic import BaseModel
-import redis.asyncio as redis
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-from core.config import settings, mini_db
-from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.responses import JSONResponse
-from logger import logger
+from pydantic import BaseModel
 from router import router
-from security import create_tokens, ALGORITHM
-import requests as req
+from security import ALGORITHM, create_tokens
 
 logging.basicConfig(level=logging.INFO)
 security = HTTPBasic()
@@ -157,7 +153,7 @@ async def refresh(refresh_token: str):
 
 
 async def get_rekt():
-    f = req.get("https://httpbin.org/get")
+    req.get("https://httpbin.org/get")
 
 
 async def fetch_data():

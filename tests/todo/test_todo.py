@@ -1,9 +1,4 @@
-from unittest.mock import AsyncMock
-
 import pytest
-from fastapi import HTTPException
-
-from tests.conftest import empty_db_client
 
 
 class TestTodoPost:

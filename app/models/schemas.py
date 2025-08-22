@@ -1,8 +1,8 @@
 import re
-from fastapi import HTTPException
-from pydantic import BaseModel, field_validator, model_validator
 
 from core.config import settings
+from fastapi import HTTPException
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class Item(BaseModel):
@@ -30,7 +30,7 @@ def check_version(version_request: str) -> str | bool:
     req = parse_version(version)
     res = parse_version(settings.version)
 
-    for req_part, res_part in zip(req, res):
+    for req_part, res_part in zip(req, res, strict=False):
         if req_part > res_part:
             return version
         elif req_part < res_part:

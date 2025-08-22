@@ -1,17 +1,20 @@
 from typing import AsyncGenerator
 
-from fastapi_limiter import FastAPILimiter
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy import NullPool, delete
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from app.main import app
 import pytest
+import redis.asyncio as redis
 from core.config import settings
-from db import get_session, session_factory
-from models import Base, User as UserModel, Todo as TodoModel
+from db import get_session
+from fastapi_limiter import FastAPILimiter
+from httpx import ASGITransport, AsyncClient
+from models import Base
+from models import Todo as TodoModel
+from models import User as UserModel
 from models.user import UserRoleEnum
 from security import crypt_context
-import redis.asyncio as redis
+from sqlalchemy import NullPool
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from app.main import app
 
 test_engine = create_async_engine(
     url=settings.db.test_url,

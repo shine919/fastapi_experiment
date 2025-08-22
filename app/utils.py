@@ -1,18 +1,15 @@
 from datetime import datetime
 from functools import wraps
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.config import settings
+from db import USERS_DATA, get_session, resources
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi_limiter.depends import RateLimiter
-from fastapi import HTTPException, status
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
-from fastapi import Depends, Request, Response
-from db import USERS_DATA, resources, get_session
-
-from security import oauth2_scheme, get_user_from_token
+from security import get_user_from_token, oauth2_scheme
+from sqlalchemy.ext.asyncio import AsyncSession
 from user.crud import UserOrm
-from user.schema import UserFromDB, UserCheck
+from user.schema import UserCheck, UserFromDB
 
 serializer = URLSafeTimedSerializer(
     secret_key=settings.secret_key,

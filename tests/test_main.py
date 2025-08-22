@@ -1,7 +1,5 @@
-import pytest
 import requests
-
-from main import app, fetch_data
+from main import fetch_data
 
 
 class TestMock:

@@ -1,10 +1,9 @@
 from decimal import Decimal
 from enum import Enum as PyEnum
 
-from alembic.operations.toimpl import create_constraint
-from sqlalchemy import Enum, Boolean, Text
-from sqlalchemy.types import String
+from sqlalchemy import Boolean, Enum, Text
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import String
 
 from . import Base
 

@@ -1,7 +1,6 @@
 from fastapi import HTTPException
+from security import create_tokens, crypt_context
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from security import crypt_context, create_tokens
 from user.crud import UserOrm
 from user.schema import UserLogin
 
