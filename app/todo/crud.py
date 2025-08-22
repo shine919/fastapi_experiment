@@ -68,13 +68,37 @@ class TodoOrm:
 
     @staticmethod
     async def update_todo_orm(id:int,todo:TodoUpdate,session:AsyncSession):
-        check_todo = await TodoOrm.get_todo_by_id_orm(id=id,session=session)
-        stmt = (update(TodoModel)
-                .where(TodoModel.id == id)
-                .values(title = todo.title,description=todo.description,completed=todo.completed,user_id=todo.user_id)
+
+        try:
+            await TodoOrm.get_todo_by_id_orm(id=id, session=session)
+            stmt = (update(TodoModel)
+                    .where(TodoModel.id == id)
+                    .values(title = todo.title,description=todo.description,completed=todo.completed,user_id=todo.user_id)
+                    )
+            query = await session.execute(stmt)
+            await session.commit()
+
+        except IntegrityError as e:
+            if 'todos_user_id_fkey' in str(e).lower():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid user"
                 )
-        query = await session.execute(stmt)
-        await session.commit()
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to update todo"
+            )
+        except HTTPException as e:
+            raise HTTPException(
+                status_code=e.status_code,
+                detail=e.detail
+            )
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(
+                status_code=500,
+                detail="Internal server error while updating todo"
+            )
 
     @staticmethod
     async def delete_todo_orm(session: AsyncSession, id: int):
