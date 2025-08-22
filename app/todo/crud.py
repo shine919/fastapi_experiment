@@ -47,6 +47,23 @@ class TodoOrm:
         query = await session.execute(stmt)
         await session.commit()
         return {"message": "Todos updated successfully!"}
+        try:
+            await TodoOrm.get_todo_by_id_orm(ids=ids, session=session)
+            completed_at_value = func.now() if completed else None
+            stmt = (update(TodoModel)
+                    .where(TodoModel.id.in_(ids))
+                    .values(completed=completed, completed_at=completed_at_value))
+            query = await session.execute(stmt)
+            await session.commit()
+
+        except HTTPException as e:
+            raise HTTPException(
+                status_code=e.status_code,
+                detail=e.detail
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Failed to update todos")
+
 
 
     @staticmethod
