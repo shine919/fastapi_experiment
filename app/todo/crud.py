@@ -69,7 +69,12 @@ class TodoOrm:
             stmt = (
                 update(TodoModel)
                 .where(TodoModel.id == id)
-                .values(title=todo.title, description=todo.description, completed=todo.completed, user_id=todo.user_id)
+                .values(
+                    title=todo.title,
+                    description=todo.description,
+                    completed=todo.completed,
+                    user_id=todo.user_id,
+                )
             )
             await session.execute(stmt)
             await session.commit()
@@ -132,7 +137,12 @@ class TodoRaw:
             "INSERT INTO todos (title, description, user_id) VALUES (:title, :description, :user_id) RETURNING *"
         )
         result = await session.execute(
-            stmt, {"title": todo.title, "description": todo.description, "user_id": todo.user_id}
+            stmt,
+            {
+                "title": todo.title,
+                "description": todo.description,
+                "user_id": todo.user_id,
+            },
         )
         await session.commit()
         row = result.first()

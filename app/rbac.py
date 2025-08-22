@@ -13,7 +13,10 @@ class PermissionChecker:
             user = kwargs.get("current_user")
             if not user:
                 # print(user)
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Требуется аутентификация")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Требуется аутентификация",
+                )
             if "admin" in user.role:
                 return await func(*args, **kwargs)
             if not any(role in user.role for role in self.roles):

@@ -38,15 +38,29 @@ app.dependency_overrides[get_session] = override_get_async_session
 
 
 async def add_metadata(session):
-    user = UserModel(username="testuser", email="test@example.com", password=crypt_context.hash("testpass"))
+    user = UserModel(
+        username="testuser",
+        email="test@example.com",
+        password=crypt_context.hash("testpass"),
+    )
     user2 = UserModel(
         username="admin",
         email="test@example.com",
         password=crypt_context.hash("admin"),
         role=UserRoleEnum.admin,
     )
-    todo1 = TodoModel(title="test todo", description="test todo description", completed=False, user_id=1)
-    todo2 = TodoModel(title="test two", description="test two  todo description", completed=False, user_id=2)
+    todo1 = TodoModel(
+        title="test todo",
+        description="test todo description",
+        completed=False,
+        user_id=1,
+    )
+    todo2 = TodoModel(
+        title="test two",
+        description="test two  todo description",
+        completed=False,
+        user_id=2,
+    )
     session.add(user)
     session.add(user2)
     await session.commit()

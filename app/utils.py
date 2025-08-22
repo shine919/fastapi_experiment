@@ -96,7 +96,10 @@ class AccessToDataChecker:
         async def wrapper(*args, **kwargs):
             user = kwargs.get("current_user")
             if not user:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Требуется аутентификация access")
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Требуется аутентификация access",
+                )
             await get_access_to_data(user, kwargs.get("username"), self.method)
             return await func(*args, **kwargs)
 

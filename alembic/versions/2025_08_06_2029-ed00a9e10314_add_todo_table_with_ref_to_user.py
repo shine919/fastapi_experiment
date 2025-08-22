@@ -27,10 +27,22 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.Text(), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("completed", sa.Boolean(), server_default=sa.text("false"), nullable=True),
+        sa.Column(
+            "completed", sa.Boolean(), server_default=sa.text("false"), nullable=True
+        ),
         sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("completed_at", sa.TIMESTAMP(), nullable=True),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),

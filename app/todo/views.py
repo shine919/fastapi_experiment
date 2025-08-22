@@ -43,7 +43,9 @@ async def update_todo(id: int, todo: TodoUpdate, session: AsyncSession = Depends
 
 @router.patch("/todos/")
 async def update_todos(
-    ids: List[int] | int = Query(), completed: bool = Query(True), session: AsyncSession = Depends(get_session)
+    ids: List[int] | int = Query(),
+    completed: bool = Query(True),
+    session: AsyncSession = Depends(get_session),
 ):
     # rq = await TodoOrm.get_todo_by_id_orm(ids=ids,session=session)
     await TodoOrm.update_todos_with_params_orm(ids=ids, completed=completed, session=session)

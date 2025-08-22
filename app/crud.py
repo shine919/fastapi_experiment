@@ -14,7 +14,10 @@ async def patch_resourse(username: str, content: str, is_public: bool = None):
     if is_public:
         resources[username] = {"content": content, "is_public": is_public}
     else:
-        resources[username] = {"content": content, "is_public": resources[username]["is_public"]}
+        resources[username] = {
+            "content": content,
+            "is_public": resources[username]["is_public"],
+        }
     return
 
 

@@ -20,7 +20,10 @@ async def handle_user_result(result, register: bool):
 class UserOrm:
     @staticmethod
     async def check_user_orm(
-        session: AsyncSession, username: str | None = None, user_id: int | None = None, register: bool = False
+        session: AsyncSession,
+        username: str | None = None,
+        user_id: int | None = None,
+        register: bool = False,
     ):
         filters = []
         if user_id is not None:
@@ -111,7 +114,10 @@ class UserOrm:
 class UserRaw:
     @staticmethod
     async def check_user_raw(
-        session: AsyncSession, username: str | None = None, user_id: int | None = None, register: bool = False
+        session: AsyncSession,
+        username: str | None = None,
+        user_id: int | None = None,
+        register: bool = False,
     ):
         filters = []
         values = {}

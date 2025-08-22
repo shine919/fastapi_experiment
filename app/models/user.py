@@ -17,7 +17,9 @@ class User(Base):
     password: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(String(50), nullable=False)
     role: Mapped[UserRoleEnum] = mapped_column(
-        default=UserRoleEnum.user, server_default=UserRoleEnum.user, name="user_role_enum"
+        default=UserRoleEnum.user,
+        server_default=UserRoleEnum.user,
+        name="user_role_enum",
     )
 
     def __repr__(self):

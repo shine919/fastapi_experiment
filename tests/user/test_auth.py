@@ -6,7 +6,11 @@ class TestUserAuth:
     @pytest.mark.parametrize(
         "user, expected_status, expected_result",
         [
-            ({"username": "admin", "password": "admin"}, 200, {"access_token": str, "token_type": "bearer"}),
+            (
+                {"username": "admin", "password": "admin"},
+                200,
+                {"access_token": str, "token_type": "bearer"},
+            ),
         ],
     )
     async def test_login(user, expected_status, expected_result, client):
@@ -32,7 +36,12 @@ class TestUserAuth:
                 200,
                 {"Секретные данные Алисы"},
             ),
-            ({"username": "bob", "password": "pass", "email": "example@mail.com"}, "alice", 403, None),
+            (
+                {"username": "bob", "password": "pass", "email": "example@mail.com"},
+                "alice",
+                403,
+                None,
+            ),
             (
                 {"username": "markiz", "password": "pass", "email": "example@mail.com"},
                 "bob",
@@ -46,5 +55,8 @@ class TestUserAuth:
         print(register_resp, "REGISTER")
         login_resp = await client.post("users/login", data=user)
         token = login_resp.json()["access_token"]
-        resp = await client.get(f"/users/protected_resource/{user_resp}", headers={"Authorization": f"Bearer {token}"})
+        resp = await client.get(
+            f"/users/protected_resource/{user_resp}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert resp.status_code == expected_status

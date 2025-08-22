@@ -13,7 +13,11 @@ class TestTodoPost:
             ),
             ({"title": 1, "description": "New todo desc", "user_id": 1}, 422, None),
             ({"title": "cool todo", "description": 1, "user_id": 1}, 422, None),
-            ({"title": "cool todo", "description": "cool_desc", "user_id": 99}, 404, {"detail": "User not found"}),
+            (
+                {"title": "cool todo", "description": "cool_desc", "user_id": 99},
+                404,
+                {"detail": "User not found"},
+            ),
         ],
     )
     async def test_create_todo(todo, expected_status, expected_result, client):
@@ -64,7 +68,8 @@ class TestTodoGets:
 class TestTodoGetById:
     @staticmethod
     @pytest.mark.parametrize(
-        "todo_id,expected_status, expected_result", [(1, 200, None), (99, 404, {"detail": "Todo not found"})]
+        "todo_id,expected_status, expected_result",
+        [(1, 200, None), (99, 404, {"detail": "Todo not found"})],
     )
     async def test_get_todo_by_id_positive(todo_id, expected_status, expected_result, client):
         response = await client.get(f"/todos/todo/{todo_id}")
@@ -82,13 +87,23 @@ class TestUpdateTodo:
         [
             (
                 1,
-                {"title": "New title", "description": "New description", "completed": True, "user_id": 1},
+                {
+                    "title": "New title",
+                    "description": "New description",
+                    "completed": True,
+                    "user_id": 1,
+                },
                 200,
                 {"message": "Todo updated successfully!"},
             ),
             (
                 1,
-                {"title": 1, "description": "New description", "completed": True, "user_id": 1},
+                {
+                    "title": 1,
+                    "description": "New description",
+                    "completed": True,
+                    "user_id": 1,
+                },
                 422,
                 {
                     "error": "Validation error",
@@ -97,13 +112,23 @@ class TestUpdateTodo:
             ),
             (
                 1,
-                {"title": "New Title", "description": "New description", "completed": True, "user_id": 1000},
+                {
+                    "title": "New Title",
+                    "description": "New description",
+                    "completed": True,
+                    "user_id": 1000,
+                },
                 400,
                 {"detail": "Invalid user"},
             ),
             (
                 99,
-                {"title": "New Title", "description": "New description", "completed": True, "user_id": 1000},
+                {
+                    "title": "New Title",
+                    "description": "New description",
+                    "completed": True,
+                    "user_id": 1000,
+                },
                 404,
                 {"detail": "Todo not found"},
             ),
@@ -142,7 +167,10 @@ class TestDeleteTodo:
     @staticmethod
     @pytest.mark.parametrize(
         "todo_id,expected_status,expected_result",
-        [(1, 200, {"message": "Todo deleted successfully"}), (99, 404, {"detail": "Todo not found"})],
+        [
+            (1, 200, {"message": "Todo deleted successfully"}),
+            (99, 404, {"detail": "Todo not found"}),
+        ],
     )
     async def test_delete_todo(todo_id, expected_status, expected_result, client):
         response = await client.delete(f"/todos/todo/{todo_id}")
