@@ -89,3 +89,10 @@ tmp/
 *.swn
 ```
 /.venv/
+/postgres-data/
+/redisdata/
+/logs/
+/README.Docker.md
+/db/
+/db/
+/db/
