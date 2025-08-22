@@ -1,22 +1,16 @@
 import secrets
 from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, Body, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_limiter.depends import RateLimiter
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
-
-from crud import add_resource
-from db import get_session, USERS_DATA, resources
+from db import get_session, resources
 from rbac import PermissionChecker
-from security import crypt_context, ROLES_DICT, create_tokens
-from todo.crud import TodoOrm
 from user.auth import login_user_auth
 from user.crud import UserOrm
-
-from user.schema import UserRegister, UserToDB, UserLogin, UserPut, UserPatch, UserFromDB, UserCheck
+from user.schema import UserRegister, UserLogin, UserPut, UserPatch,  UserCheck
 from utils import AccessToDataChecker, get_current_user
 
 router = APIRouter(tags=["User"], prefix="/users")
@@ -43,15 +37,15 @@ async def get_user_by_id(user_id:int,session:AsyncSession=Depends(get_session)):
     return await UserOrm.check_user_orm(session,user_id=user_id)
 
 @router.put('/user/{user_id}')
-async def put_update_user(user:UserPut, session:AsyncSession=Depends(get_session)):
-    result = await UserOrm.put_user_orm(user,session)
+async def put_update_user(user_id:int,user:UserPut, session:AsyncSession=Depends(get_session)):
+    result = await UserOrm.put_user_orm(user_id,user,session)
 
     return {f'The user with id {user.id} was updated successfully!'}
 @router.patch('/user/{user_id}')
-async def put_update_user(user:UserPatch=Body(), session:AsyncSession=Depends(get_session)):
-    result = await UserOrm.patch_user_orm(user,session)
+async def patch_update_user(user_id:int,user:UserPatch=Body(), session:AsyncSession=Depends(get_session)):
+    result = await UserOrm.patch_user_orm(user_id,user,session)
 
-    return {f'The user with id {user.id} was updated successfully!{result}'}
+    return {f'The user with id {user_id} was updated successfully!{result}'}
 
 
 @router.get("/protected_resource/{username}")
@@ -73,12 +67,7 @@ async def information_get(username : str,current_user:UserCheck = Depends(get_cu
 # async def user_info(current_user: UserFromDB = Depends(get_current_user),_:None = Depends(get_limit_time_by_role)):
 #     """Маршрут для пользователей"""
 #     return {"message": f"Hello, {current_user.username}! Welcome to the user page."}
-# @router.get("/guest")
-# @PermissionChecker(["guest"])
-# async def user_info(current_user: UserFromDB = Depends(get_current_user),_:None = Depends(get_limit_time_by_role)):
-#     """Маршрут для гостя"""
-#     return {"message": f"Hello, {current_user.username}! Welcome to the guest page."}
-#
+
 # @router.get("/about_me")
 # async def about_me(current_user: UserFromDB = Depends(get_current_user)):
 #     """Информация о текущем пользователе"""
