@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from fastapi_limiter.depends import RateLimiter
-from fastapi import HTTPException,status
+from fastapi import HTTPException, status
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
-from fastapi import Depends,Request,Response
+from fastapi import Depends, Request, Response
 from db import USERS_DATA, resources, get_session
 
 from security import oauth2_scheme, get_user_from_token
@@ -64,55 +64,59 @@ async def verify_token(token, response: Response, max_age=1800):
         return {"message": "Signature expired"}
 
 
-
-async def get_current_user(token : str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)):
+async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)):
     username = await get_user_from_token(token)
-    usr =  await UserOrm.check_user_orm(username=username,session=session)
+    usr = await UserOrm.check_user_orm(username=username, session=session)
     return usr
 
 
-
-
-
 limits_rate_dict = {
-    'admin':1000,
-    'user':20,
-    'guest':5,
+    "admin": 1000,
+    "user": 20,
+    "guest": 5,
 }
-async def get_limit_time_by_role(request : Request,response : Response, user: UserFromDB = Depends(get_current_user)):
-    for k,v in limits_rate_dict.items():
-        if k in user.roles:
-            limiter = RateLimiter(times=v,minutes=1)
-            return await limiter(request=request,response=response)
-    limiter = RateLimiter(times=5, minutes=1)
-    return await limiter(request=request,response=response)
 
-async def get_request_method(request:Request):
+
+async def get_limit_time_by_role(request: Request, response: Response, user: UserFromDB = Depends(get_current_user)):
+    for k, v in limits_rate_dict.items():
+        if k in user.roles:
+            limiter = RateLimiter(times=v, minutes=1)
+            return await limiter(request=request, response=response)
+    limiter = RateLimiter(times=5, minutes=1)
+    return await limiter(request=request, response=response)
+
+
+async def get_request_method(request: Request):
     return request.method
 
+
 class AccessToDataChecker:
-    def __init__(self,method):
+    def __init__(self, method):
         self.method = method
+
     def __call__(self, func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            user = kwargs.get('current_user')
+            user = kwargs.get("current_user")
             if not user:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Требуется аутентификация access")
-            await get_access_to_data(user,kwargs.get('username'),self.method)
+            await get_access_to_data(user, kwargs.get("username"), self.method)
             return await func(*args, **kwargs)
+
         return wrapper
-async def get_access_to_data(user: UserCheck,needed_res:str,method:str):
-    if method == 'POST' and needed_res not in resources:
+
+
+async def get_access_to_data(user: UserCheck, needed_res: str, method: str):
+    if method == "POST" and needed_res not in resources:
         return True
     if needed_res not in resources:
         raise HTTPException(status_code=404, detail="Такого ресурса не существует")
-    if 'admin' in user.role:
+    if "admin" in user.role:
         return True
     if needed_res == user.username:
         return True
-    if method == 'GET':
-        if resources[needed_res]['is_public']:
+    if method == "GET":
+        if resources[needed_res]["is_public"]:
             return True
         else:
             raise HTTPException(status_code=403, detail="This resource is not available")

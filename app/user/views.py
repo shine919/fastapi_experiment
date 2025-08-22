@@ -10,50 +10,58 @@ from db import get_session, resources
 from rbac import PermissionChecker
 from user.auth import login_user_auth
 from user.crud import UserOrm
-from user.schema import UserRegister, UserLogin, UserPut, UserPatch,  UserCheck
+from user.schema import UserRegister, UserLogin, UserPut, UserPatch, UserCheck
 from utils import AccessToDataChecker, get_current_user
 
 router = APIRouter(tags=["User"], prefix="/users")
 
 
-
-@router.post("/register",dependencies=[Depends(RateLimiter(times=50,minutes=1))])
-async def register_user(user:UserRegister,session:AsyncSession = Depends(get_session)):
-    await UserOrm.register_user_orm(user,session)
+@router.post("/register", dependencies=[Depends(RateLimiter(times=50, minutes=1))])
+async def register_user(user: UserRegister, session: AsyncSession = Depends(get_session)):
+    await UserOrm.register_user_orm(user, session)
     return "User successfully registered"
 
+
 @router.post("/login")
-async def login_user(user: UserLogin=Form(),session:AsyncSession=Depends(get_session)):
-    return await login_user_auth(user,session)
-@router.get('/get_users/')
-async def get_all_users(session:AsyncSession=Depends(get_session)):
+async def login_user(user: UserLogin = Form(), session: AsyncSession = Depends(get_session)):
+    return await login_user_auth(user, session)
+
+
+@router.get("/get_users/")
+async def get_all_users(session: AsyncSession = Depends(get_session)):
     return await UserOrm.get_users_orm(session)
-@router.delete('/user/{user_id}/')
-async def delete_user(user_id:int,session:AsyncSession=Depends(get_session)):
-    return await UserOrm.delete_user_orm(user_id,session)
 
-@router.get('/user/{user_id}/')
-async def get_user_by_id(user_id:int,session:AsyncSession=Depends(get_session)):
-    return await UserOrm.check_user_orm(session,user_id=user_id)
 
-@router.put('/user/{user_id}')
-async def put_update_user(user_id:int,user:UserPut, session:AsyncSession=Depends(get_session)):
-    result = await UserOrm.put_user_orm(user_id,user,session)
+@router.delete("/user/{user_id}/")
+async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)):
+    return await UserOrm.delete_user_orm(user_id, session)
 
-    return {f'The user with id {user.id} was updated successfully!'}
-@router.patch('/user/{user_id}')
-async def patch_update_user(user_id:int,user:UserPatch=Body(), session:AsyncSession=Depends(get_session)):
-    result = await UserOrm.patch_user_orm(user_id,user,session)
 
-    return {f'The user with id {user_id} was updated successfully!{result}'}
+@router.get("/user/{user_id}/")
+async def get_user_by_id(user_id: int, session: AsyncSession = Depends(get_session)):
+    return await UserOrm.check_user_orm(session, user_id=user_id)
+
+
+@router.put("/user/{user_id}")
+async def put_update_user(user_id: int, user: UserPut, session: AsyncSession = Depends(get_session)):
+    result = await UserOrm.put_user_orm(user_id, user, session)
+
+    return {f"The user with id {user.id} was updated successfully!"}
+
+
+@router.patch("/user/{user_id}")
+async def patch_update_user(user_id: int, user: UserPatch = Body(), session: AsyncSession = Depends(get_session)):
+    result = await UserOrm.patch_user_orm(user_id, user, session)
+
+    return {f"The user with id {user_id} was updated successfully!{result}"}
 
 
 @router.get("/protected_resource/{username}")
 @AccessToDataChecker("GET")
 @PermissionChecker(["user"])
-async def information_get(username : str,current_user:UserCheck = Depends(get_current_user)):
-    print(f'hello {username}', current_user)
-    return resources[username]['content']
+async def information_get(username: str, current_user: UserCheck = Depends(get_current_user)):
+    print(f"hello {username}", current_user)
+    return resources[username]["content"]
 
 
 # @router.get("/admin")

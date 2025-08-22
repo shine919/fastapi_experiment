@@ -12,50 +12,38 @@ from models import Base, User as UserModel, Todo as TodoModel
 from models.user import UserRoleEnum
 from security import crypt_context
 import redis.asyncio as redis
+
 test_engine = create_async_engine(
     url=settings.db.test_url,
     echo=False,
     poolclass=NullPool,
 )
-test_factory =async_sessionmaker(
+test_factory = async_sessionmaker(
     bind=test_engine,
     autoflush=False,
     autocommit=False,
     expire_on_commit=False,
 )
 
+
 async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with test_factory() as session:
         yield session
 
+
 app.dependency_overrides[get_session] = override_get_async_session
 
 
-
 async def add_metadata(session):
-    user = UserModel(
-        username='testuser',
-        email='test@example.com',
-        password=crypt_context.hash('testpass')
-    )
+    user = UserModel(username="testuser", email="test@example.com", password=crypt_context.hash("testpass"))
     user2 = UserModel(
-        username='admin',
-        email='test@example.com',
-        password=crypt_context.hash('admin'),
+        username="admin",
+        email="test@example.com",
+        password=crypt_context.hash("admin"),
         role=UserRoleEnum.admin,
     )
-    todo1 = TodoModel(
-        title='test todo',
-        description='test todo description',
-        completed=False,
-        user_id=1
-    )
-    todo2 = TodoModel(
-        title='test two',
-        description='test two  todo description',
-        completed=False,
-        user_id=2
-    )
+    todo1 = TodoModel(title="test todo", description="test todo description", completed=False, user_id=1)
+    todo2 = TodoModel(title="test two", description="test two  todo description", completed=False, user_id=2)
     session.add(user)
     session.add(user2)
     await session.commit()
@@ -64,13 +52,9 @@ async def add_metadata(session):
     session.add(todo1)
     session.add(todo2)
 
-
-
     await session.commit()
     await session.refresh(user)
     await session.refresh(user2)
-
-
 
 
 @pytest.fixture(scope="function")
@@ -96,5 +80,3 @@ async def empty_db_client():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
         await FastAPILimiter.init(con)
         yield ac
-
-

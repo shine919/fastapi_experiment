@@ -8,7 +8,7 @@ from security import crypt_context
 from user.schema import UserRegister, UserCheck, UsersFromDBList, UserPut, UserPatch
 
 
-async def handle_user_result(result,register:bool):
+async def handle_user_result(result, register: bool):
     if register and result:
         raise HTTPException(status_code=409, detail="User with this name already exists")
     if register and not result:
@@ -17,11 +17,13 @@ async def handle_user_result(result,register:bool):
         return UserCheck.model_validate(result)
     raise HTTPException(status_code=404, detail="User not found")
 
-class UserOrm:
 
+class UserOrm:
     @staticmethod
-    async def check_user_orm(session: AsyncSession,  username: str | None = None,user_id: int | None = None,register:bool = False ):
-        filters =[]
+    async def check_user_orm(
+        session: AsyncSession, username: str | None = None, user_id: int | None = None, register: bool = False
+    ):
+        filters = []
         if user_id is not None:
             filters.append(UserModel.id == user_id)
         if username is not None:
@@ -29,16 +31,17 @@ class UserOrm:
         stmt = select(UserModel).where(and_(*filters))
         query = await session.execute(stmt)
         result = query.scalars().one_or_none()
-        return await handle_user_result(result,register)
+        return await handle_user_result(result, register)
 
     @staticmethod
     async def register_user_orm(user: UserRegister, session: AsyncSession):
         await UserOrm.check_user_orm(username=user.username, session=session, register=True)
         hashed_password = crypt_context.hash(user.password)
-        stmt = insert(UserModel).values(username=user.username,password=hashed_password,email=user.email)
+        stmt = insert(UserModel).values(username=user.username, password=hashed_password, email=user.email)
         query = await session.execute(stmt)
         await session.commit()
         return
+
     @staticmethod
     async def delete_user_orm(user_id: int, session: AsyncSession):
         await UserOrm.check_user_orm(session=session, user_id=user_id)
@@ -61,37 +64,42 @@ class UserOrm:
         except HTTPException as e:
             raise e
         except Exception as e:
-            raise HTTPException(status_code=500, detail='Server error')
+            raise HTTPException(status_code=500, detail="Server error")
 
     @staticmethod
-    async def put_user_orm(user_id: int,user:UserPut, session:AsyncSession):
+    async def put_user_orm(user_id: int, user: UserPut, session: AsyncSession):
         try:
             hashed_password = crypt_context.hash(user.password)
-            stmt = update(UserModel).where(UserModel.id == user_id).values(username=user.username,email=user.email,password=hashed_password).returning(UserModel.username)
+            stmt = (
+                update(UserModel)
+                .where(UserModel.id == user_id)
+                .values(username=user.username, email=user.email, password=hashed_password)
+                .returning(UserModel.username)
+            )
             query = await session.execute(stmt)
             await session.commit()
             result = query.scalars().one()
             if not result:
                 raise HTTPException(status_code=404, detail="User not found")
             return result
-        except (HTTPException,NoResultFound) as e:
+        except (HTTPException, NoResultFound) as e:
             raise HTTPException(status_code=404, detail="User not found")
         except Exception as e:
             print(type(e))
-            raise HTTPException(status_code=500, detail=f'Error {e}')
+            raise HTTPException(status_code=500, detail=f"Error {e}")
 
     @staticmethod
-    async def patch_user_orm(user_id:int,user:UserPatch,session:AsyncSession):
+    async def patch_user_orm(user_id: int, user: UserPatch, session: AsyncSession):
         try:
             await UserOrm.check_user_orm(session=session, user_id=user_id)
             values = {}
             if user.username:
-                values['username'] = user.username
+                values["username"] = user.username
             if user.password:
-                values['password'] =  crypt_context.hash(user.password)
+                values["password"] = crypt_context.hash(user.password)
             if user.email:
-                values['email'] = user.email
-            stmt = update(UserModel).where(UserModel.id==user_id).values(**values).returning(UserModel.username)
+                values["email"] = user.email
+            stmt = update(UserModel).where(UserModel.id == user_id).values(**values).returning(UserModel.username)
             query = await session.execute(stmt)
             await session.commit()
             return query.scalars().one()
@@ -100,33 +108,28 @@ class UserOrm:
             raise HTTPException(status_code=404, detail="User not found")
         except Exception as e:
             print(type(e))
-            raise HTTPException(status_code=500, detail=f'Error {e}')
-
-
-
-
-
-
+            raise HTTPException(status_code=500, detail=f"Error {e}")
 
 
 class UserRaw:
     @staticmethod
-    async def check_user_raw(session: AsyncSession, username: str | None = None, user_id: int | None = None,
-                         register: bool = False):
+    async def check_user_raw(
+        session: AsyncSession, username: str | None = None, user_id: int | None = None, register: bool = False
+    ):
         filters = []
         values = {}
         if user_id:
-            filters.append('id = :user_id')
-            values['user_id'] = user_id
+            filters.append("id = :user_id")
+            values["user_id"] = user_id
         if username:
-            filters.append('username = :username')
-            values['username'] = username
+            filters.append("username = :username")
+            values["username"] = username
 
-        add_where = f'WHERE {' AND '.join(filters)}' if filters else ''
+        add_where = f"WHERE {' AND '.join(filters)}" if filters else ""
         stmt = text(f"SELECT * FROM users {add_where}")
         result = await session.execute(stmt, values)
         res = result.first()
-        return await handle_user_result(res,register)
+        return await handle_user_result(res, register)
 
     @staticmethod
     async def delete_user_raw(user_id: int, session: AsyncSession):
