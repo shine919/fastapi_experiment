@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 
 from fastapi_limiter import FastAPILimiter
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy import  NullPool
+from sqlalchemy import NullPool, delete
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from app.main import app
 import pytest
@@ -70,26 +70,31 @@ async def add_metadata(session):
     await session.refresh(user)
     await session.refresh(user2)
 
-@pytest.fixture(scope="class",autouse=True)
-async def test_lifespan():
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    async with test_factory() as session:
-        await add_metadata(session)
-    yield
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-
 
 
 
 @pytest.fixture(scope="function")
 async def client():
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    async with test_factory() as session:
+        await add_metadata(session)
     con = redis.Redis(host="127.0.0.1")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
         await FastAPILimiter.init(con)
         yield ac
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
+
+@pytest.fixture
+async def empty_db_client():
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    con = redis.Redis(host="127.0.0.1")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
+        await FastAPILimiter.init(con)
+        yield ac
 
 
