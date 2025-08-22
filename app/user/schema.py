@@ -29,7 +29,7 @@ class UserCheck(BaseModel):
     model_config=ConfigDict(from_attributes=True)
 
 class UserPatch(BaseModel):
-    id:int
+    id:int | None = None
     username: str | None = None
     password: str | None = None
     email: str | None = None
