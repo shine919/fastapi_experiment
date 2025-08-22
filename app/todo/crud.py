@@ -1,10 +1,13 @@
 from typing import Any, Dict, List
 from fastapi import HTTPException
 from sqlalchemy import text, select, case, func, update, null, delete, asc, desc, and_, insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import Todo as TodoModel, User as UserModel
 from todo.schema import TodosParams, TodosResponse, TodoResponse, TodoUpdate, Todo
 from user.crud import UserOrm
+
+
 
 
 class TodoOrm:
@@ -40,13 +43,6 @@ class TodoOrm:
 
     @staticmethod
     async def update_todos_with_params_orm(ids: list, completed: bool, session: AsyncSession):
-        completed_at_value = func.now() if completed else None
-        stmt = (update(TodoModel)
-                .where(TodoModel.id.in_(ids))
-                .values(completed=completed, completed_at=completed_at_value))
-        query = await session.execute(stmt)
-        await session.commit()
-        return {"message": "Todos updated successfully!"}
         try:
             await TodoOrm.get_todo_by_id_orm(ids=ids, session=session)
             completed_at_value = func.now() if completed else None
@@ -131,7 +127,7 @@ class TodoOrm:
             dicts = [TodoResponse.model_validate(r) for r in result]
             lists = TodosResponse(todos=dicts)
             return lists
-        return []
+        raise HTTPException(status_code=404, detail="Todos not found")
 
 
 class TodoRaw:
