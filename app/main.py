@@ -19,6 +19,7 @@ from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
 from router import router
 from security import ALGORITHM, create_tokens
+from sub_app.api_2 import sub_app
 
 logging.basicConfig(level=logging.INFO)
 security = HTTPBasic()
@@ -32,8 +33,9 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(redoc_url=None, docs_url=None, openapi_url=None, lifespan=lifespan)
+app = FastAPI(root_path="/api/v1", redoc_url=None, docs_url=None, openapi_url=None, lifespan=lifespan)
 app.include_router(router)
+app.mount("/sub_app/", sub_app)
 
 if settings.debug:
     app.debug = True

@@ -55,7 +55,7 @@ class TestTodoGets:
             (404, {"detail": "Todos not found"}),
         ],
     )
-    async def test_get_todos_negative(expected_status, expected_result, empty_db_client, mocker):
+    async def test_get_todos_negative(expected_status, expected_result, empty_db_client):
         # mock_get_todos_data = mocker.patch('todo.crud.TodoOrm.get_todos_with_params_orm')
         # mock_get_todos_data.side_effect = HTTPException(status_code=404, detail='Todos not found')
         response = await empty_db_client.get("/todos/todos")

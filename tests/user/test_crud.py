@@ -78,7 +78,7 @@ class TestUserPut:
                     "role": "user",
                 },
                 200,
-                {"id": 1, "username": "testuser"},
+                "The user with id 1 was updated successfully!",
             ),
             (
                 4,
@@ -116,8 +116,7 @@ class TestUserPut:
         response = await client.put(f"/users/user/{user_id}", json=user)
         assert response.status_code == expected_status
         if response.status_code == 200:
-            assert response.json()["id"] == expected_result["id"]
-            assert response.json()["username"] == expected_result["username"]
+            assert response.json()[0] == expected_result
 
 
 class TestUserPatch:

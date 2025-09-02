@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from fastapi import HTTPException
 from models import Todo as TodoModel
-from sqlalchemy import and_, asc, delete, desc, func, insert, select, text, update
+from sqlalchemy import and_, asc, delete, desc, func, insert, select, text, true, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from todo.schema import Todo, TodoResponse, TodosParams, TodosResponse, TodoUpdate
@@ -114,7 +114,7 @@ class TodoOrm:
             filters.append(TodoModel.created_at <= todos.created_before)
         stmt = (
             select(TodoModel)
-            .where(and_(*filters))
+            .where(and_(true(), *filters))
             .order_by(func_order(todos.sort_by))
             .limit(todos.limit)
             .offset(todos.offset)
@@ -131,7 +131,7 @@ class TodoOrm:
 class TodoRaw:
     @staticmethod
     async def create_todo_raw(todo: Todo, session: AsyncSession):
-        await UserOrm.check_user_orm(todo.user_id, session)
+        await UserOrm.check_user_orm(user_id=todo.user_id, session=session)
 
         stmt = text(
             "INSERT INTO todos (title, description, user_id) VALUES (:title, :description, :user_id) RETURNING *"
