@@ -3,11 +3,10 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-import jwt
 import redis.asyncio as redis
 import requests as req
-from core.config import mini_db, settings
-from fastapi import Depends, FastAPI, HTTPException, Request
+from core.config import settings
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -15,10 +14,8 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic
 from fastapi_limiter import FastAPILimiter
-from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel
 from router import router
-from security import ALGORITHM, create_tokens
 from sub_app.api_2 import sub_app
 
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +25,7 @@ security = HTTPBasic()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # con = redis.Redis(host="redis", port=6379, db=0) #  docker
-    con = redis.Redis(host="127.0.0.1")  # dev
+    con = redis.Redis(host="127.0.0.1", db=0)  # dev
     await FastAPILimiter.init(con)
     yield
 
@@ -141,17 +138,17 @@ def calculate_sum(a: int, b: int):
     return {"result": a + b}
 
 
-@app.post("/refresh", dependencies=[Depends(RateLimiter(times=5, minutes=1))])
-async def refresh(refresh_token: str):
-    data = jwt.decode(refresh_token, settings.secret_key, algorithms=[ALGORITHM])
-    if data.get("type", None):
-        if data.get("exp") > datetime.now().timestamp():
-            for user in mini_db:
-                if user[data.get("sub")]:
-                    return await create_tokens({"sub": data.get("sub")})
-                raise HTTPException(status_code=401, detail="Token not found")
-        raise HTTPException(status_code=401, detail="Token is expired")
-    raise HTTPException(status_code=401, detail="Incorrect token")
+# @app.post("/refresh", dependencies=[Depends(RateLimiter(times=5, minutes=1))])
+# async def refresh(refresh_token: str):
+#     data = jwt.decode(refresh_token, settings.secret_key, algorithms=[ALGORITHM])
+#     if data.get("type", None):
+#         if data.get("exp") > datetime.now().timestamp():
+#             for user in mini_db:
+#                 if user[data.get("sub")]:
+#                     return await create_tokens({"sub": data.get("sub")})
+#                 raise HTTPException(status_code=401, detail="Token not found")
+#         raise HTTPException(status_code=401, detail="Token is expired")
+#     raise HTTPException(status_code=401, detail="Incorrect token")
 
 
 async def get_rekt():
