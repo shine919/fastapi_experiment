@@ -14,10 +14,10 @@ async def login_user_auth(user: UserLogin, session: AsyncSession):
     if not crypt_context.verify(user.password, user_in.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    tokens = await create_tokens({"sub": user.username})
+    tokens = await create_tokens({"id": user_in.id, "sub": user.username, "role": user_in.role})
 
     return {
         "access_token": tokens["access_token"],
-        # 'refresh_token': tokens["refresh_token"],
+        "refresh_token": tokens["refresh_token"],
         "token_type": "bearer",
     }
