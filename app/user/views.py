@@ -2,6 +2,7 @@ from db import get_session, resources
 from fastapi import APIRouter, Body, Depends, Form
 from fastapi_limiter.depends import RateLimiter
 from rbac import PermissionChecker
+from security import take_new_refresh
 from sqlalchemy.ext.asyncio import AsyncSession
 from user.auth import login_user_auth
 from user.crud import UserOrm
@@ -19,12 +20,18 @@ async def register_user(user: UserRegister, session: AsyncSession = Depends(get_
 
 @router.post("/login")
 async def login_user(user: UserLogin = Form(), session: AsyncSession = Depends(get_session)):
-    return await login_user_auth(user, session)
+    tokens = await login_user_auth(user, session)
+    return tokens
 
 
 @router.get("/get_users/")
 async def get_all_users(session: AsyncSession = Depends(get_session)):
     return await UserOrm.get_users_orm(session)
+
+
+@router.post("/refresh/")
+async def refresh_tokens(refresh_token: str, client_ip: str, user_agent: str):
+    return await take_new_refresh(refresh_token, client_ip, user_agent)
 
 
 @router.delete("/user/{user_id}/")
