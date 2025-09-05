@@ -5,7 +5,7 @@ from core.config import settings
 from db import USERS_DATA, get_session, resources
 from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi_limiter.depends import RateLimiter
-from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from itsdangerous import URLSafeTimedSerializer
 from security import get_user_from_token, oauth2_scheme
 from sqlalchemy.ext.asyncio import AsyncSession
 from user.crud import UserOrm
@@ -38,27 +38,6 @@ async def create_token(user_id):
     data = f"{user_id}.{timestamp}"
     result = serializer.dumps(data)
     return f"{data}.{result}"
-
-
-async def verify_token(token, response: Response, max_age=1800):
-    token_list = token.split(".")
-    signature = ".".join(token_list[2:])
-    time = token_list[1]
-    user_id = token_list[0]
-    try:
-        verify_signature = serializer.loads(signature, max_age=max_age)
-        decoded_data = verify_signature.split(".")
-        if decoded_data[0] == user_id and decoded_data[1] == time:
-            pass
-        else:
-            raise BadSignature("msg")
-        if not await check_token_time(user_id, time, response):
-            raise SignatureExpired("msg")
-        return {"message": "success"}
-    except BadSignature:
-        return {"message": "Invalid session"}
-    except SignatureExpired:
-        return {"message": "Signature expired"}
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)):
