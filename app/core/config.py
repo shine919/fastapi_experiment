@@ -14,6 +14,11 @@ class BaseConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
 
 
+class LoggingSettings(BaseConfig):
+    model_config = SettingsConfigDict(env_prefix="LOGGING_")
+    level: str
+
+
 class DbSettings(BaseConfig):
     model_config = SettingsConfigDict(env_prefix="DB_")
     url: str
@@ -38,6 +43,7 @@ class Settings(BaseSettings):
     db: DbSettings = Field(default_factory=DbSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
     super_user: SuperUserSettings = Field(default_factory=SuperUserSettings)
+    loger: LoggingSettings = Field(default_factory=LoggingSettings)
     secret_key: str
     debug: bool
     mode: Literal["PROD", "DEV"] = "DEV"
