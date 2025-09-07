@@ -2,7 +2,7 @@ from datetime import datetime
 from functools import wraps
 
 from core.config import settings
-from db import USERS_DATA, get_session, resources
+from db import get_session, resources
 from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi_limiter.depends import RateLimiter
 from itsdangerous import URLSafeTimedSerializer
@@ -22,9 +22,6 @@ async def check_token_time(user_name, time, response: Response):
     if 180 < float(now) - float(time) < 300:
         token = await create_token(user_name)
         response.set_cookie(key="session_token", value=token, max_age=300, httponly=True)
-        for user in USERS_DATA:
-            if user["username"] == user_name:
-                user["session_token"] = token
         return True
     elif 180 > float(now) - float(time):
         return True
