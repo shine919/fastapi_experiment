@@ -1,11 +1,13 @@
-from fastapi import HTTPException
-from security import create_tokens, crypt_context
+from fastapi import HTTPException, Request
+from security import TokenManager, crypt_context
 from sqlalchemy.ext.asyncio import AsyncSession
 from user.crud import UserOrm
 from user.schema import UserLogin
 
 
-async def login_user_auth(user: UserLogin, session: AsyncSession):
+async def login_user_auth(
+    user: UserLogin, session: AsyncSession, request: Request, user_agent: str, manager: TokenManager
+):
     user_in = await UserOrm.check_user_orm(username=user.username, session=session)
 
     if not user_in:
@@ -13,8 +15,14 @@ async def login_user_auth(user: UserLogin, session: AsyncSession):
 
     if not crypt_context.verify(user.password, user_in.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
-
-    tokens = await create_tokens({"id": user_in.id, "sub": user.username, "role": user_in.role})
+    data = {
+        "id": user_in.id,
+        "sub": user.username,
+        "role": user_in.role,
+        "ip_address": request.client.host,
+        "user_agent": user_agent,
+    }
+    tokens = await manager.create_tokens(data=data)
 
     return {
         "access_token": tokens["access_token"],
