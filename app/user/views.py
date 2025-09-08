@@ -1,13 +1,15 @@
+from typing import Annotated
+
 from db import get_session, resources
-from fastapi import APIRouter, Body, Depends, Form
+from fastapi import APIRouter, Body, Depends, Form, Header, Request
 from fastapi_limiter.depends import RateLimiter
-from rbac import PermissionChecker
-from security import take_new_refresh
+from rbac import AccessToDataChecker, PermissionChecker
+from security import PayloadFromJWT, TokenManager, get_token_manager
 from sqlalchemy.ext.asyncio import AsyncSession
 from user.auth import login_user_auth
 from user.crud import UserOrm
-from user.schema import UserCheck, UserLogin, UserPatch, UserPut, UserRegister
-from utils import AccessToDataChecker, get_current_user
+from user.schema import UserLogin, UserPatch, UserPut, UserRegister
+from utils import get_current_user
 
 router = APIRouter(tags=["User"], prefix="/users")
 
@@ -19,8 +21,14 @@ async def register_user(user: UserRegister, session: AsyncSession = Depends(get_
 
 
 @router.post("/login")
-async def login_user(user: UserLogin = Form(), session: AsyncSession = Depends(get_session)):
-    tokens = await login_user_auth(user, session)
+async def login_user(
+    request: Request,
+    user: UserLogin = Form(),
+    user_agent: Annotated[str | None, Header()] = None,
+    session: AsyncSession = Depends(get_session),
+    manager: TokenManager = Depends(get_token_manager),
+):
+    tokens = await login_user_auth(user, session, request, user_agent, manager)
     return tokens
 
 
@@ -30,8 +38,10 @@ async def get_all_users(session: AsyncSession = Depends(get_session)):
 
 
 @router.post("/refresh/")
-async def refresh_tokens(refresh_token: str, client_ip: str, user_agent: str):
-    return await take_new_refresh(refresh_token, client_ip, user_agent)
+async def refresh_tokens(
+    refresh_token: str, client_ip: str, user_agent: str, manager: TokenManager = Depends(get_token_manager)
+):
+    return await manager.take_new_refresh(refresh_token, client_ip, user_agent)
 
 
 @router.delete("/user/{user_id}/")
@@ -61,8 +71,8 @@ async def patch_update_user(user_id: int, user: UserPatch = Body(), session: Asy
 @router.get("/protected_resource/{username}")
 @AccessToDataChecker("GET")
 @PermissionChecker(["user"])
-async def information_get(username: str, current_user: UserCheck = Depends(get_current_user)):
-    print(f"hello {username}", current_user)
+async def information_get(username: str, user_payload: PayloadFromJWT = Depends(get_current_user)):
+    print(f"hello {username}")
     return resources[username]["content"]
 
 
